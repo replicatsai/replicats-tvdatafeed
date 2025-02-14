@@ -38,6 +38,7 @@ class TvDatafeed:
 
     def __init__(
         self,
+        token: str = None,
         username: str = None,
         password: str = None,
     ) -> None:
@@ -50,13 +51,16 @@ class TvDatafeed:
 
         self.ws_debug = False
 
-        self.token = self.__auth(username, password)
+        self.token = token
+        if self.token:
+            self.session = requests.Session()
+            self.session.headers.update({"Cookie": f"sessionid={self.token}"})
+            logging.info("Auth with token!")
+        elif username and password:
+            self.__auth(username, password)
+        else:
+            logging.warning("No credentials, data maybe will be limited")
 
-        if self.token is None:
-            self.token = "unauthorized_user_token"
-            logger.warning(
-                "you are using nologin method, data you access may be limited"
-            )
 
         self.ws = None
         self.session = self.__generate_session()
